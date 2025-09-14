@@ -599,19 +599,19 @@ PPU ppu(
 /**********************************************************/
 
 wire [15:0] prg_addr = addr;
-wire [7:0] prg_din = dbus & (prg_conflict ? cpumem_din : 8'hFF);
+wire [7:0] prg_din = (dbus & (prg_conflict ? cpumem_din : 8'hFF)) | (prg_conflict_d0 ? cpumem_din & 8'h01 : 8'h00);
 
 wire prg_read  = mr_int && cart_pre && !apu_cs && !ppu_cs;
 wire prg_write = mw_int && cart_pre;
 
-wire prg_allow, prg_bus_write, prg_conflict, vram_a10, vram_ce, chr_allow;
+wire prg_allow, prg_bus_write, prg_conflict, prg_conflict_d0, vram_a10, vram_ce, chr_allow;
 wire [24:0] prg_linaddr;
 wire [21:0] chr_linaddr;
 wire [7:0] prg_dout_mapper, chr_from_ppu_mapper;
 wire has_chr_from_ppu_mapper;
 wire [15:0] sample_ext;
 
-assign save_written = (mapper_flags[7:0] == 8'h14) ? (prg_linaddr[21:18] == 4'b1111 && prg_write) : (prg_addr[15:13] == 3'b011 && prg_write) | bram_write;
+assign save_written = (mapper_flags[7:0] == 8'h14) ? (prg_linaddr[21:18] == 4'b1111 && prg_write && prg_allow) : (prg_addr[15:13] == 3'b011 && prg_write) | bram_write;
 
 cart_top multi_mapper (
 	// FPGA specific
@@ -659,6 +659,7 @@ cart_top multi_mapper (
 	.prg_bus_write     (prg_bus_write),           // PRG data driven to bus
 	.prg_conflict      (prg_conflict),            // Simulate bus conflicts
 	.has_savestate     (mapper_has_savestate),    // Mapper supports savestates
+	.prg_conflict_d0  (prg_conflict_d0),        // Simulate bus conflicts for Mapper 144
 	// User input/FDS controls
 	.fds_eject         (fds_eject),               // Used to trigger FDS disk changes
 	.fds_busy          (fds_busy),                // Used to trigger FDS disk changes
