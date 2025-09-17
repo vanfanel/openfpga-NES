@@ -275,6 +275,8 @@ module nes_top (
       .SaveStateExt_Dout(SaveStateBus_Dout),
       .SaveStateExt_load(savestate_load),
 
+      .savestate_busy(ss_busy),
+
       .SAVE_out_Din(ss_din),  // data read from savestate
       .SAVE_out_Dout(ss_dout),  // data written to savestate
       .SAVE_out_Adr(ss_addr),  // all addresses are DWORD addresses!
